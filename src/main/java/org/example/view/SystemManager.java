@@ -3,6 +3,7 @@ package org.example.view;
 import org.example.service.CustomerService;
 import org.example.service.OrderService;
 import org.example.service.ProductService;
+import org.example.service.SearchService;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -11,12 +12,14 @@ public class SystemManager {
     private final ProductService productService;
     private final CustomerService customerService;
     private final OrderService orderService;
+    private final SearchService searchService;
     private final Scanner scanner;
 
     public SystemManager() {
         this.productService = new ProductService();
         this.customerService = new CustomerService();
         this.orderService = new OrderService(customerService, productService);
+        this.searchService = new SearchService(productService, orderService);
         this.scanner = new Scanner(System.in);
     }
 
@@ -35,6 +38,8 @@ public class SystemManager {
             System.out.println("10. Add new order");
             System.out.println("11. Update order");
             System.out.println("12. Delete order");
+            System.out.println("13. Top 3 products with the largest number of orders");
+            System.out.println("14. Search Orders By ProductID");
             System.out.println("0. Exit");
             System.out.print("Please select an option: ");
 
@@ -81,6 +86,12 @@ public class SystemManager {
                         break;
                     case 12:
                         orderService.deleteOrders();
+                        break;
+                    case 13:
+                        searchService.searchToProduct();
+                        break;
+                    case 14:
+                        searchService.searchOrdersByProductId();
                         break;
                     case 0:
                         System.out.println("Exiting system...");

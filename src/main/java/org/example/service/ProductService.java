@@ -128,7 +128,7 @@ public class ProductService {
         fileProcessor.writeFile(MessageKeys.FILE_OUTPUT_PRODUCT, new ArrayList<>(productMap.values()), this::formatProduct, header);
     }
 
-    private String createHeader() {
+    protected String createHeader() {
         return String.join(MessageKeys.CHARACTER,
                 ProductEnum.ID.getHeader(),
                 ProductEnum.NAME.getHeader(),
@@ -136,7 +136,7 @@ public class ProductService {
                 ProductEnum.STOCK_AVAILABLE.getHeader());
     }
 
-    private String formatProduct(Product product) {
+    protected String formatProduct(Product product) {
         return String.join(MessageKeys.CHARACTER,
                 product.getId(),
                 product.getName(),
