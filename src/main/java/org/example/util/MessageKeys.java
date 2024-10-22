@@ -4,7 +4,7 @@ public class MessageKeys {
     public static final String CHARACTER = ",";
     public static final String CHAR_SPLIT = ":";
     public static final String CHAR_SPLIT_QUANTITY = ";";
-    public static final String FILE_PATH_PRODUCT = "InputFolder/products.origin.csv";
+    public static final String FILE_PATH_PRODUCT = "InputFolder/products.origin1.csv";
     public static final String FILE_PATH_NEW_PRODUCT = "InputFolder/products.new.csv";
     public static final String FILE_PATH_EDIT_PRODUCT = "InputFolder/products.edit.csv";
     public static final String FILE_PATH_DELETE_PRODUCT = "InputFolder/products.delete.csv";

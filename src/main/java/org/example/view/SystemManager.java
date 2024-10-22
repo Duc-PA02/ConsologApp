@@ -46,61 +46,57 @@ public class SystemManager {
             int choice = scanner.nextInt();
             scanner.nextLine();
 
-            try {
-                switch (choice) {
-                    case 1:
-                        productService.loadProducts();
-                        productService.writeProductsToFile();
-                        break;
-                    case 2:
-                        customerService.loadCustomers();
-                        customerService.writeCustomersToFile();
-                        break;
-                    case 3:
-                        orderService.loadOrders();
-                        orderService.writeOrdersToFile();
-                        break;
-                    case 4:
-                        productService.addNewProducts();
-                        break;
-                    case 5:
-                        productService.updateProducts();
-                        break;
-                    case 6:
-                        productService.deleteProducts();
-                        break;
-                    case 7:
-                        customerService.addNewCustomers();
-                        break;
-                    case 8:
-                        customerService.updateCustomers();
-                        break;
-                    case 9:
-                        customerService.deleteCustomers();
-                        break;
-                    case 10:
-                        orderService.addNewOrders();
-                        break;
-                    case 11:
-                        orderService.updateOrders();
-                        break;
-                    case 12:
-                        orderService.deleteOrders();
-                        break;
-                    case 13:
-                        searchService.searchToProduct();
-                        break;
-                    case 14:
-                        searchService.searchOrdersByProductId();
-                        break;
-                    case 0:
-                        System.out.println("Exiting system...");
-                        return;
-                    default:
-                        System.out.println("Invalid option. Please try again.");
-                }
-            } catch (IOException e) {
-                System.out.println("Error processing request: " + e.getMessage());
+            switch (choice) {
+                case 1:
+                    productService.loadProducts();
+                    productService.writeProductsToFile();
+                    break;
+                case 2:
+                    customerService.loadCustomers();
+                    customerService.writeCustomersToFile();
+                    break;
+                case 3:
+                    orderService.loadOrders();
+                    orderService.writeOrdersToFile();
+                    break;
+                case 4:
+                    productService.addNewProducts();
+                    break;
+                case 5:
+                    productService.updateProducts();
+                    break;
+                case 6:
+                    productService.deleteProducts();
+                    break;
+                case 7:
+                    customerService.addNewCustomers();
+                    break;
+                case 8:
+                    customerService.updateCustomers();
+                    break;
+                case 9:
+                    customerService.deleteCustomers();
+                    break;
+                case 10:
+                    orderService.addNewOrders();
+                    break;
+                case 11:
+                    orderService.updateOrders();
+                    break;
+                case 12:
+                    orderService.deleteOrders();
+                    break;
+                case 13:
+                    searchService.searchToProduct();
+                    break;
+                case 14:
+                    searchService.searchOrdersByProductId();
+                    break;
+                case 0:
+                    System.out.println("Exiting system...");
+                    return;
+                default:
+                    System.out.println("Invalid option. Please try again.");
             }
         }
     }

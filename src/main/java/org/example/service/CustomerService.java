@@ -22,19 +22,19 @@ public class CustomerService {
         this.customerMap = new HashMap<>();
     }
 
-    public List<Customer> loadCustomers() throws IOException {
+    public List<Customer> loadCustomers() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_CUSTOMER);
         processCustomerData(data);
         return new ArrayList<>(customerMap.values());
     }
 
-    public void addNewCustomers() throws IOException {
+    public void addNewCustomers() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_NEW_CUSTOMER);
         processCustomerData(data);
         writeCustomersToFile();
     }
 
-    public void updateCustomers() throws IOException {
+    public void updateCustomers() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_EDIT_CUSTOMER);
         List<Customer> nonExistingCustomers = new ArrayList<>();
         processCustomerUpdateData(data, nonExistingCustomers);
@@ -46,7 +46,7 @@ public class CustomerService {
         writeCustomersToFile();
     }
 
-    public void deleteCustomers() throws IOException {
+    public void deleteCustomers() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_DELETE_CUSTOMER);
         Set<String> phoneNumbers = processDeleteCustomerData(data);
 
@@ -136,20 +136,19 @@ public class CustomerService {
     }
 
     private void handleException(IllegalArgumentException e) {
-        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, e.getMessage());
-        System.out.println("An error occurred: " + e.getMessage());
+        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, "An error occurred: " + e.getMessage());
     }
 
     public Set<String> getCustomerIds() {
         return existingCustomerIds;
     }
 
-    public void writeCustomersToFile() throws IOException {
+    public void writeCustomersToFile() {
         String header = createHeader();
         fileProcessor.writeFile(MessageKeys.FILE_OUTPUT_CUSTOMER, new ArrayList<>(customerMap.values()), this::formatCustomer, header);
     }
 
-    private void writeNonExistingCustomersToFile(List<Customer> nonExistingCustomers) throws IOException {
+    private void writeNonExistingCustomersToFile(List<Customer> nonExistingCustomers) {
         String header = createHeader();
         fileProcessor.writeFile(MessageKeys.FILE_NON_EXISTENT_CUSTOMER, nonExistingCustomers, this::formatCustomer, header);
     }

@@ -26,7 +26,7 @@ public class SearchService {
     }
 
     // Tìm kiếm top 3 product có số lượng order lớn nhất
-    public void searchToProduct() throws IOException {
+    public void searchToProduct() {
         Map<String, Integer> productOrderCount = new HashMap<>();
 
         for (Order order : orderService.orders().values()) {
@@ -52,7 +52,7 @@ public class SearchService {
         fileProcessorProduct.writeFile(MessageKeys.FILE_OUTPUT_PRODUCT, top3Products, productService::formatProduct, header);
     }
 
-    public void searchOrdersByProductId() throws IOException {
+    public void searchOrdersByProductId() {
         List<String[]> productIdData = idFileProcessor.readFile(MessageKeys.FILE_PATH_SEARCH_PRODUCT_ID);
 
         List<String> productIds = productIdData.stream()
@@ -61,14 +61,23 @@ public class SearchService {
         findOrdersByProductIds(productIds);
     }
 
-    private void findOrdersByProductIds(List<String> productIds) throws IOException {
-        List<Order> matchingOrders = orderService.orders().values().stream()
-                .filter(order -> orderContainsProductId(order, productIds))
-                .collect(Collectors.toList());
+    private void findOrdersByProductIds(List<String> productIds) {
+        try {
+            List<Order> matchingOrders = orderService.orders().values().stream()
+                    .filter(order -> orderContainsProductId(order, productIds))
+                    .collect(Collectors.toList());
 
-        String header = orderService.createHeader();
-        fileProcessorOrder.writeFile(MessageKeys.FILE_OUTPUT_ORDER, matchingOrders, orderService::formatOrder, header);
+            if (matchingOrders.isEmpty()) {
+                throw new IllegalArgumentException("No orders found for the given product IDs");
+            }
+
+            String header = orderService.createHeader();
+            fileProcessorOrder.writeFile(MessageKeys.FILE_OUTPUT_ORDER, matchingOrders, orderService::formatOrder, header);
+        } catch (Exception e) {
+            fileProcessorOrder.writeErrorLog(MessageKeys.FILE_ERROR, "Error while finding orders by product IDs: " + e.getMessage());
+        }
     }
+
 
     private boolean orderContainsProductId(Order order, List<String> productIds) {
         return order.getProductQuantities().keySet().stream()

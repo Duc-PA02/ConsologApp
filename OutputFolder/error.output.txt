@@ -52040,3 +52040,6 @@ Ordered quantity exceeds available stock for product ID: P0967
 Ordered quantity exceeds available stock for product ID: P0088
 Ordered quantity exceeds available stock for product ID: P0338
 Ordered quantity exceeds available stock for product ID: P0452
+IOException while reading file: InputFolder\products.origin1.csv
+IOException while reading file: InputFolder\products.origin1.csv
+IOException while reading file: InputFolder\products.origin1.csv

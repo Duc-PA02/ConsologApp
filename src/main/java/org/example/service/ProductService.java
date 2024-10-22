@@ -20,25 +20,25 @@ public class ProductService {
         this.productMap = new HashMap<>();
     }
 
-    public Collection<Product> loadProducts() throws IOException {
+    public Collection<Product> loadProducts() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_PRODUCT);
         processProductData(data);
         return productMap.values();
     }
 
-    public void addNewProducts() throws IOException {
+    public void addNewProducts() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_NEW_PRODUCT);
         processProductData(data);
         writeProductsToFile();
     }
 
-    public void updateProducts() throws IOException {
+    public void updateProducts() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_EDIT_PRODUCT);
         processProductUpdateData(data);
         writeProductsToFile();
     }
 
-    public void deleteProducts() throws IOException {
+    public void deleteProducts() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_DELETE_PRODUCT);
         Set<String> productIdsToDelete = processDeleteProductData(data);
 
@@ -123,7 +123,7 @@ public class ProductService {
         return productIdsToDelete;
     }
 
-    public void writeProductsToFile() throws IOException {
+    public void writeProductsToFile() {
         String header = createHeader();
         fileProcessor.writeFile(MessageKeys.FILE_OUTPUT_PRODUCT, new ArrayList<>(productMap.values()), this::formatProduct, header);
     }
@@ -149,7 +149,6 @@ public class ProductService {
     }
 
     private void handleException(IllegalArgumentException e) {
-        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, e.getMessage());
-        System.out.println("An error occurred: " + e.getMessage());
+        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, "An error occurred: " + e.getMessage());
     }
 }

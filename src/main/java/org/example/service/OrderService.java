@@ -27,19 +27,19 @@ public class OrderService {
         this.orderMap = new HashMap<>();
     }
 
-    public Collection<Order> loadOrders() throws IOException {
+    public Collection<Order> loadOrders() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_ORDER);
         proceOrderData(data);
         return orderMap.values();
     }
 
-    public void addNewOrders() throws IOException {
+    public void addNewOrders() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_NEW_ORDER);
         proceOrderData(data);
         writeOrdersToFile();
     }
 
-    public void updateOrders() throws IOException {
+    public void updateOrders() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_EDIT_ORDER);
 
         Set<String> customerIds = new HashSet<>(customerService.getCustomerIds());
@@ -79,7 +79,7 @@ public class OrderService {
         writeOrdersToFile();
     }
 
-    public void deleteOrders() throws IOException {
+    public void deleteOrders() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_DELETE_ORDER);
 
         Set<String> orderIdsToDelete = new HashSet<>();
@@ -137,7 +137,7 @@ public class OrderService {
             }
         }
     }
-    public void writeOrdersToFile() throws IOException {
+    public void writeOrdersToFile() {
         String header = createHeader();
         fileProcessor.writeFile(MessageKeys.FILE_OUTPUT_ORDER, new ArrayList<>(orderMap.values()), this::formatOrder, header);
     }
@@ -208,8 +208,7 @@ public class OrderService {
     }
 
     private void handleException(IllegalArgumentException e) {
-        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, e.getMessage());
-        System.out.println("An error occurred: " + e.getMessage());
+        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, "An error occurred: " + e.getMessage());
     }
 
     protected Map<String, Order> orders(){
