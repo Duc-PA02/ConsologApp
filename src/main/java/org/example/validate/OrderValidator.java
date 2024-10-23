@@ -1,4 +1,4 @@
-package org.example.common;
+package org.example.validate;
 
 import org.example.model.Product;
 

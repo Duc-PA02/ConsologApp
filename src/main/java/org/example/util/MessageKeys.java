@@ -14,7 +14,6 @@ public class MessageKeys {
     public static final String FILE_PATH_EDIT_CUSTOMER = "InputFolder/customers.edit.csv";
     public static final String FILE_PATH_DELETE_CUSTOMER = "InputFolder/customers.delete.csv";
     public static final String FILE_OUTPUT_CUSTOMER = "OutputFolder/customers.output.csv";
-    public static final String FILE_NON_EXISTENT_CUSTOMER = "OutputFolder/customers.non.existent.csv";
     public static final String FILE_PATH_ORDER = "InputFolder/orders.origin.csv";
     public static final String FILE_PATH_NEW_ORDER = "InputFolder/orders.new.csv";
     public static final String FILE_PATH_SEARCH_PRODUCT_ID = "InputFolder/productIds.search.csv";

@@ -1,4 +1,4 @@
-package org.example.common;
+package org.example.validate;
 
 import java.util.regex.Pattern;
 
@@ -22,9 +22,9 @@ public class CustomerValidator {
         }
     }
 
-    public void validateEmail(String email) throws IllegalArgumentException {
-        if (!EMAIL_PATTERN.matcher(email).matches()) {
-            throw new IllegalArgumentException("Invalid email: " + email);
+    public void validateEmail(String email, boolean emailExists) throws IllegalArgumentException {
+        if (!EMAIL_PATTERN.matcher(email).matches() || emailExists) {
+            throw new IllegalArgumentException("Invalid or duplicated email: " + email);
         }
     }
 

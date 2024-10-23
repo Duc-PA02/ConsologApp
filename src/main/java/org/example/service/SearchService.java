@@ -6,7 +6,6 @@ import org.example.model.Product;
 import org.example.common.FileProcessor;
 import org.example.util.MessageKeys;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -77,7 +76,6 @@ public class SearchService {
             fileProcessorOrder.writeErrorLog(MessageKeys.FILE_ERROR, "Error while finding orders by product IDs: " + e.getMessage());
         }
     }
-
 
     private boolean orderContainsProductId(Order order, List<String> productIds) {
         return order.getProductQuantities().keySet().stream()

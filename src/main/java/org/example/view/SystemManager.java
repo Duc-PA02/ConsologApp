@@ -5,7 +5,6 @@ import org.example.service.OrderService;
 import org.example.service.ProductService;
 import org.example.service.SearchService;
 
-import java.io.IOException;
 import java.util.Scanner;
 
 public class SystemManager {

@@ -1,18 +1,18 @@
 package org.example.service;
 
-import org.example.common.CustomerValidator;
+import org.example.validate.CustomerValidator;
 import org.example.common.FileProcessor;
 import org.example.enums.CustomerEnum;
 import org.example.model.Customer;
 import org.example.util.MessageKeys;
 
-import java.io.IOException;
 import java.util.*;
 
 public class CustomerService {
     private final FileProcessor<Customer> fileProcessor;
     private final CustomerValidator customerValidator;
     private final Set<String> existingCustomerIds;
+    private final Set<String> existingEmails;
     private Map<String, Customer> customerMap;
 
     public CustomerService() {
@@ -20,6 +20,7 @@ public class CustomerService {
         this.customerValidator = new CustomerValidator();
         this.existingCustomerIds = new HashSet<>();
         this.customerMap = new HashMap<>();
+        this.existingEmails = new HashSet<>();
     }
 
     public List<Customer> loadCustomers() {
@@ -67,10 +68,11 @@ public class CustomerService {
                 try {
                     customerValidator.validateId(id, existingCustomerIds.contains(id));
                     customerValidator.validateName(name);
-                    customerValidator.validateEmail(email);
+                    customerValidator.validateEmail(email, existingEmails.contains(email));
                     customerValidator.validatePhoneNumber(phoneNumber, customerMap.containsKey(phoneNumber));
 
                     existingCustomerIds.add(id);
+                    existingEmails.add(email);
 
                     Customer customer = new Customer(id, name, email, phoneNumber);
                     customerMap.put(phoneNumber, customer);
@@ -92,8 +94,9 @@ public class CustomerService {
                 String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()];
 
                 try {
+                    customerValidator.validateId(id, existingCustomerIds.contains(id));
                     customerValidator.validateName(name);
-                    customerValidator.validateEmail(email);
+                    customerValidator.validateEmail(email, existingEmails.contains(email));
                     customerValidator.validatePhoneNumber(phoneNumber, false);
 
                     Customer existingCustomer = customerMap.get(phoneNumber);
@@ -150,7 +153,7 @@ public class CustomerService {
 
     private void writeNonExistingCustomersToFile(List<Customer> nonExistingCustomers) {
         String header = createHeader();
-        fileProcessor.writeFile(MessageKeys.FILE_NON_EXISTENT_CUSTOMER, nonExistingCustomers, this::formatCustomer, header);
+        fileProcessor.writeFile(MessageKeys.FILE_ERROR, nonExistingCustomers, this::formatCustomer, header);
     }
 
     private String createHeader() {

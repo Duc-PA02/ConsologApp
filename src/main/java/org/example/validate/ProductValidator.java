@@ -1,4 +1,4 @@
-package org.example.common;
+package org.example.validate;
 
 public class ProductValidator {
     public void validateId(String id, boolean idExists, boolean isUpdate) throws IllegalArgumentException {
