@@ -16,12 +16,12 @@ public class SearchService {
     private final FileProcessor<Order> fileProcessorOrder;
     private final FileProcessor<String> idFileProcessor;
 
-    public SearchService(ProductService productService, OrderService orderService) {
+    public SearchService(ProductService productService, OrderService orderService, String folderPath) {
         this.productService = productService;
         this.orderService = orderService;
-        this.fileProcessorProduct = new FileProcessor<>();
-        this.fileProcessorOrder = new FileProcessor<>();
-        this.idFileProcessor = new FileProcessor<>();
+        this.fileProcessorProduct = new FileProcessor<>(folderPath);
+        this.fileProcessorOrder = new FileProcessor<>(folderPath);
+        this.idFileProcessor = new FileProcessor<>(folderPath);
     }
 
     // Tìm kiếm top 3 product có số lượng order lớn nhất

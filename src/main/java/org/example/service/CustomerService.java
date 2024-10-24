@@ -15,8 +15,8 @@ public class CustomerService {
     private final Set<String> existingEmails;
     private Map<String, Customer> customerMap;
 
-    public CustomerService() {
-        this.fileProcessor = new FileProcessor<>();
+    public CustomerService(String folderPath) {
+        this.fileProcessor = new FileProcessor<>(folderPath);
         this.customerValidator = new CustomerValidator();
         this.existingCustomerIds = new HashSet<>();
         this.customerMap = new HashMap<>();
@@ -50,9 +50,21 @@ public class CustomerService {
     public void deleteCustomers() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_DELETE_CUSTOMER);
         Set<String> phoneNumbers = processDeleteCustomerData(data);
+        Set<String> customerIdsToRemove = new HashSet<>();
+        Set<String> emailsToRemove = new HashSet<>();
 
-        phoneNumbers.forEach(customerMap::remove);
-        existingCustomerIds.removeAll(phoneNumbers);
+        phoneNumbers.forEach(phoneNumber -> {
+            Customer customer = customerMap.get(phoneNumber);
+            if (customer != null) {
+                customerIdsToRemove.add(customer.getId());
+                emailsToRemove.add(customer.getEmail());
+                customerMap.remove(phoneNumber);
+            }
+        });
+
+        existingCustomerIds.removeAll(customerIdsToRemove);
+        existingEmails.removeAll(emailsToRemove);
+
         writeCustomersToFile();
     }
 
@@ -122,7 +134,7 @@ public class CustomerService {
             String[] values = data.get(i);
 
             if (values.length > 0) {
-                String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()].trim();
+                String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()];
                 try {
                     customerValidator.validatePhoneNumber(phoneNumber, customerMap.containsKey(phoneNumber));
                     if (!phoneNumber.isEmpty()) {

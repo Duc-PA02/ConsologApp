@@ -17,8 +17,8 @@ public class OrderService {
     private final ProductService productService;
     private Map<String, Order> orderMap;
 
-    public OrderService(CustomerService customerService, ProductService productService) {
-        this.fileProcessor = new FileProcessor<>();
+    public OrderService(CustomerService customerService, ProductService productService, String folderPath) {
+        this.fileProcessor = new FileProcessor<>(folderPath);
         this.orderValidator = new OrderValidator();
         this.customerService = customerService;
         this.productService = productService;

@@ -13,8 +13,8 @@ public class ProductService {
     private final ProductValidator productValidator;
     private final Map<String, Product> productMap;
 
-    public ProductService() {
-        this.fileProcessor = new FileProcessor<>();
+    public ProductService(String folderPath) {
+        this.fileProcessor = new FileProcessor<>(folderPath);
         this.productValidator = new ProductValidator();
         this.productMap = new HashMap<>();
     }
@@ -107,7 +107,7 @@ public class ProductService {
             String[] values = data.get(i);
 
             if (values.length > 0) {
-                String id = values[ProductEnum.ID.ordinal()].trim();
+                String id = values[ProductEnum.ID.ordinal()];
                 try {
                     productValidator.validateId(id, productMap.containsKey(id), true);
                     if (!id.isEmpty()) {

@@ -7,7 +7,7 @@ public class CustomerValidator {
     private static final Pattern PHONE_PATTERN = Pattern.compile("^0[0-9]{9}$");
 
     public void validateId(String id, boolean idExists) throws IllegalArgumentException {
-        if (id == null || id.trim().isEmpty()) {
+        if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Customer ID cannot be empty.");
         }
 

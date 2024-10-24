@@ -9,8 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileProcessor<T> {
-    public List<String[]> readFile(String filePath) {
+    private final String folderPath;
+
+    public FileProcessor(String folderPath) {
+        this.folderPath = folderPath;
+    }
+    public List<String[]> readFile(String fileName) {
         List<String[]> data = new ArrayList<>();
+        String filePath = folderPath + File.separator + fileName;
         try (BufferedReader br = Files.newBufferedReader(Paths.get(filePath))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -33,7 +39,8 @@ public class FileProcessor<T> {
     }
 
 
-    public void writeFile(String filePath, List<T> objects, CSVFormatter<T> formatter, String header) {
+    public void writeFile(String fileName, List<T> objects, CSVFormatter<T> formatter, String header) {
+        String filePath = folderPath + File.separator + fileName;
         File file = new File(filePath);
         try {
             if (!file.exists()) {
@@ -65,7 +72,16 @@ public class FileProcessor<T> {
 
 
     public void writeErrorLog(String errorLogPath, String message) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(errorLogPath, true))) {
+        String logFilePath = folderPath + File.separator + errorLogPath;
+        File logFile = new File(logFilePath);
+
+
+        File parentDir = logFile.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(logFile, true))) {
             bw.write(message);
             bw.newLine();
         } catch (IOException e) {

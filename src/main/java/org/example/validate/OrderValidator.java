@@ -10,7 +10,7 @@ public class OrderValidator {
     private static final Pattern ISO8601_PATTERN = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{1,9}(\\+|-)\\d{2}:\\d{2}$");
 
     public void validateId(String id, boolean idExists, boolean isUpdate) throws IllegalArgumentException {
-        if (id == null || id.trim().isEmpty()) {
+        if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Order ID cannot be empty.");
         }
 

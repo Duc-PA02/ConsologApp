@@ -2,7 +2,7 @@ package org.example.validate;
 
 public class ProductValidator {
     public void validateId(String id, boolean idExists, boolean isUpdate) throws IllegalArgumentException {
-        if (id == null || id.trim().isEmpty()) {
+        if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Product ID cannot be empty.");
         }
 
@@ -19,7 +19,7 @@ public class ProductValidator {
 
 
     public void validateName(String name) throws IllegalArgumentException {
-        if (name == null || name.trim().isEmpty()) {
+        if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Product Name cannot be empty.");
         }
     }
