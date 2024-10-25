@@ -20,41 +20,26 @@ public class ProductService {
     }
 
     public Collection<Product> loadAndValidateProducts() {
+        return loadProducts(true);
+    }
+
+    public Collection<Product> loadProducts() {
+        return loadProducts(false);
+    }
+
+    private Collection<Product> loadProducts(boolean validate) {
         productMap.clear();
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_PRODUCT);
         for (int i = 1; i < data.size(); i++) {
             String[] values = data.get(i);
             try {
-                Product product = validateAndCreateProduct(values);
+                Product product = createProductFromValues(values, validate);
                 productMap.put(product.getId(), product);
             } catch (IllegalArgumentException e) {
                 handleException(e);
             }
         }
-
         return productMap.values();
-    }
-
-    public void loadProducts() {
-        productMap.clear();
-        List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_PRODUCT);
-        for (int i = 1; i < data.size(); i++) {
-            String[] values = data.get(i);
-            try {
-                Product product = createProduct(values);
-                productMap.put(product.getId(), product);
-            } catch (IllegalArgumentException e) {
-                handleException(e);
-            }
-        }
-    }
-
-    private Product createProduct(String[] values) {
-        return createProductFromValues(values, false);
-    }
-
-    private Product validateAndCreateProduct(String[] values) {
-        return createProductFromValues(values, true);
     }
 
     private Product createProductFromValues(String[] values, boolean validate) {
