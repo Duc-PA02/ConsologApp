@@ -26,6 +26,7 @@ public class OrderService {
     }
 
     public Collection<Order> loadOrders() {
+        orderMap.clear();
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_ORDER);
         proceOrderData(data);
         return orderMap.values();

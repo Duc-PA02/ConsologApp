@@ -29,11 +29,9 @@ public class SearchService {
         Map<String, Integer> productOrderCount = new HashMap<>();
 
         for (Order order : orderService.orders().values()) {
-            Map<String, Integer> productQuantities = order.getProductQuantities();
-            for (Map.Entry<String, Integer> entry : productQuantities.entrySet()) {
-                String productId = entry.getKey();
-                int quantity = entry.getValue();
-                productOrderCount.put(productId, productOrderCount.getOrDefault(productId, 0) + quantity);
+            Set<String> productIdsInOrder = order.getProductQuantities().keySet();
+            for (String productId : productIdsInOrder) {
+                productOrderCount.put(productId, productOrderCount.getOrDefault(productId, 0) + 1);
             }
         }
 

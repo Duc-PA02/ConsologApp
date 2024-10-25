@@ -1,4 +1,3 @@
-IOException while reading file: D:\CodeJava\Project_1\ProcessingFolder\InputFolder\products.origin1.csv
 An error occurred: Ordered quantity exceeds available stock for product ID: P0967
 An error occurred: Ordered quantity exceeds available stock for product ID: P0783
 An error occurred: Ordered quantity exceeds available stock for product ID: P0490

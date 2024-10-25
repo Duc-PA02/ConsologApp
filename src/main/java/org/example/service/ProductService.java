@@ -20,6 +20,7 @@ public class ProductService {
     }
 
     public Collection<Product> loadProducts() {
+        productMap.clear();
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_PRODUCT);
         processProductData(data);
         return productMap.values();

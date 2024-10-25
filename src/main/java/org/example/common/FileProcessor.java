@@ -3,6 +3,7 @@ package org.example.common;
 import org.example.util.MessageKeys;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -16,10 +17,10 @@ public class FileProcessor<T> {
     }
     public List<String[]> readFile(String fileName) {
         List<String[]> data = new ArrayList<>();
-        String filePath = folderPath + File.separator + fileName;
-        try (BufferedReader br = Files.newBufferedReader(Paths.get(filePath))) {
+        String filePath = Paths.get(folderPath, fileName).toString();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8)))  {
             String line;
-            while ((line = br.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 if (!line.trim().isEmpty()) {
                     String[] values = line.split(MessageKeys.CHARACTER);
                     data.add(values);
@@ -40,23 +41,16 @@ public class FileProcessor<T> {
 
 
     public void writeFile(String fileName, List<T> objects, CSVFormatter<T> formatter, String header) {
-        String filePath = folderPath + File.separator + fileName;
+        String filePath = Paths.get(folderPath, fileName).toString();
         File file = new File(filePath);
-        try {
-            if (!file.exists()) {
-                if (!file.createNewFile()) {
-                    throw new IOException("Failed to create new file: " + filePath);
-                }
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), StandardCharsets.UTF_8))) {
+            if (file.length() == 0) {
+                writer.write(header);
+                writer.newLine();
             }
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-                if (file.length() == 0) {
-                    bw.write(header);
-                    bw.newLine();
-                }
-                for (T obj : objects) {
-                    bw.write(formatter.format(obj));
-                    bw.newLine();
-                }
+            for (T obj : objects) {
+                writer.write(formatter.format(obj));
+                writer.newLine();
             }
         } catch (SecurityException e) {
             writeErrorLog(MessageKeys.FILE_ERROR, "SecurityException while writing file: " + filePath);
@@ -72,7 +66,7 @@ public class FileProcessor<T> {
 
 
     public void writeErrorLog(String errorLogPath, String message) {
-        String logFilePath = folderPath + File.separator + errorLogPath;
+        String logFilePath = Paths.get(folderPath, errorLogPath).toString();
         File logFile = new File(logFilePath);
 
 
@@ -81,7 +75,7 @@ public class FileProcessor<T> {
             parentDir.mkdirs();
         }
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(logFile, true))) {
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(logFile, true), StandardCharsets.UTF_8))) {
             bw.write(message);
             bw.newLine();
         } catch (IOException e) {

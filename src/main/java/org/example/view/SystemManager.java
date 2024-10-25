@@ -28,36 +28,67 @@ public class SystemManager {
                 orderService.writeOrdersToFile();
                 break;
             case "2.1":
+                productService.loadProducts();
+                customerService.loadCustomers();
+                orderService.loadOrders();
                 productService.addNewProducts();
                 break;
             case "2.2":
+                productService.loadProducts();
+                customerService.loadCustomers();
+                orderService.loadOrders();
                 productService.updateProducts();
                 break;
             case "2.3":
+                productService.loadProducts();
+                customerService.loadCustomers();
+                orderService.loadOrders();
                 productService.deleteProducts();
                 break;
             case "3.1":
+                productService.loadProducts();
+                customerService.loadCustomers();
+                orderService.loadOrders();
                 customerService.addNewCustomers();
                 break;
             case "3.2":
+                productService.loadProducts();
+                customerService.loadCustomers();
+                orderService.loadOrders();
                 customerService.updateCustomers();
                 break;
             case "3.3":
+                productService.loadProducts();
+                customerService.loadCustomers();
+                orderService.loadOrders();
                 customerService.deleteCustomers();
                 break;
             case "4.1":
+                productService.loadProducts();
+                customerService.loadCustomers();
+                orderService.loadOrders();
                 orderService.addNewOrders();
                 break;
             case "4.2":
+                productService.loadProducts();
+                customerService.loadCustomers();
+                orderService.loadOrders();
                 orderService.updateOrders();
                 break;
             case "4.3":
+                productService.loadProducts();
+                customerService.loadCustomers();
+                orderService.loadOrders();
                 orderService.deleteOrders();
                 break;
             case "5.1":
+                productService.loadProducts();
+                orderService.loadOrders();
                 searchService.searchToProduct();
                 break;
             case "5.2":
+                productService.loadProducts();
+                orderService.loadOrders();
                 searchService.searchOrdersByProductId();
                 break;
             default:

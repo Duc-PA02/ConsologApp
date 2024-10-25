@@ -24,21 +24,25 @@ public class CustomerService {
     }
 
     public List<Customer> loadCustomers() {
+        existingCustomerIds.clear();
+        existingEmails.clear();
+        customerMap.clear();
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_CUSTOMER);
-        processCustomerData(data);
+        loadCustomerData(data);
         return new ArrayList<>(customerMap.values());
     }
 
     public void addNewCustomers() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_NEW_CUSTOMER);
-        processCustomerData(data);
+        List<Customer> newCustomers = new ArrayList<>();
+        processCustomerUpdateData(data, newCustomers, true);
         writeCustomersToFile();
     }
 
     public void updateCustomers() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_EDIT_CUSTOMER);
         List<Customer> nonExistingCustomers = new ArrayList<>();
-        processCustomerUpdateData(data, nonExistingCustomers);
+        processCustomerUpdateData(data, nonExistingCustomers, false);
 
         if (!nonExistingCustomers.isEmpty()) {
             writeNonExistingCustomersToFile(nonExistingCustomers);
@@ -68,7 +72,7 @@ public class CustomerService {
         writeCustomersToFile();
     }
 
-    private void processCustomerData(List<String[]> data) {
+    private void loadCustomerData(List<String[]> data) {
         for (int i = 1; i < data.size(); i++) {
             String[] values = data.get(i);
             if (values.length >= CustomerEnum.values().length) {
@@ -95,7 +99,7 @@ public class CustomerService {
         }
     }
 
-    private void processCustomerUpdateData(List<String[]> data, List<Customer> nonExistingCustomers) {
+    private void processCustomerUpdateData(List<String[]> data, List<Customer> resultCustomers, boolean isAddOperation) {
         for (int i = 1; i < data.size(); i++) {
             String[] values = data.get(i);
 
@@ -116,9 +120,14 @@ public class CustomerService {
                     if (existingCustomer != null) {
                         existingCustomer.setName(name);
                         existingCustomer.setEmail(email);
+                    } else if (isAddOperation) {
+                        Customer newCustomer = new Customer(id, name, email, phoneNumber);
+                        customerMap.put(phoneNumber, newCustomer);
+                        existingCustomerIds.add(id);
+                        existingEmails.add(email);
                     } else {
                         Customer nonExistingCustomer = new Customer(id, name, email, phoneNumber);
-                        nonExistingCustomers.add(nonExistingCustomer);
+                        resultCustomers.add(nonExistingCustomer);
                     }
                 } catch (IllegalArgumentException e) {
                     handleException(e);
