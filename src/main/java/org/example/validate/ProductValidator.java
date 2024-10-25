@@ -1,22 +1,14 @@
 package org.example.validate;
 
 public class ProductValidator {
-    public void validateId(String id, boolean idExists, boolean isUpdate) throws IllegalArgumentException {
+    public void validateId(String id, boolean idExists) throws IllegalArgumentException {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Product ID cannot be empty.");
         }
-
-        if (isUpdate) {
-            if (!idExists) {
-                throw new IllegalArgumentException("Product ID does not exist for update: " + id);
-            }
-        } else {
-            if (idExists) {
-                throw new IllegalArgumentException("Product ID already exists: " + id);
-            }
+        if (idExists) {
+            throw new IllegalArgumentException("Product ID already exists: " + id);
         }
     }
-
 
     public void validateName(String name) throws IllegalArgumentException {
         if (name == null || name.isBlank()) {
