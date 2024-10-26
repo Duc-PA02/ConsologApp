@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.enums.CustomerEnum;
 import org.example.enums.ProductEnum;
 import org.example.model.Product;
 import org.example.common.FileProcessor;
@@ -113,7 +114,12 @@ public class ProductService {
         Set<String> productIdsToDelete = new HashSet<>();
         for (int i = 1; i < data.size(); i++) {
             String[] values = data.get(i);
-            productIdsToDelete.add(values[ProductEnum.ID.ordinal()]);
+            if (values.length > 0) {
+                String productId = values[ProductEnum.ID.ordinal()];
+                if (!productId.isEmpty()) {
+                    productIdsToDelete.add(productId);
+                }
+            }
         }
         return productIdsToDelete;
     }

@@ -73,9 +73,7 @@ public class CustomerService {
     }
 
     private Collection<Customer> loadCustomers(boolean validate) {
-        customerMap.clear();
-        existingCustomerIds.clear();
-        existingEmails.clear();
+        resetData();
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_CUSTOMER);
 
         for (int i = 1; i < data.size(); i++) {

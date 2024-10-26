@@ -25,16 +25,63 @@ public class OrderService {
         this.orderMap = new HashMap<>();
     }
 
+    public Collection<Order> loadAndValidOrders() {
+        return loadOrders(true);
+    }
+
     public Collection<Order> loadOrders() {
+        return loadOrders(false);
+    }
+
+    private Collection<Order> loadOrders(boolean validate) {
         orderMap.clear();
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_ORDER);
-        proceOrderData(data);
+        processOrderData(data, validate);
         return orderMap.values();
+    }
+
+    private void processOrderData(List<String[]> data, boolean validate) {
+        Set<String> customerIds = new HashSet<>(customerService.getCustomerIds());
+        Map<String, Product> productMap = new HashMap<>(productService.getAllProducts());
+
+        for (int i = 1; i < data.size(); i++) {
+            String[] values = data.get(i);
+            try {
+                Order order = createOrderFromValues(values, validate, customerIds, productMap);
+                orderMap.put(order.getId(), order);
+            } catch (IllegalArgumentException e) {
+                handleException(e);
+            }
+        }
+    }
+
+    private Order createOrderFromValues(String[] values, boolean validate, Set<String> customerIds, Map<String, Product> productMap) {
+        if (values.length < OrderEnum.values().length - 1) {
+            throw new IllegalArgumentException("Invalid data length");
+        }
+
+        String id = values[OrderEnum.ID.ordinal()];
+        String customerId = values[OrderEnum.CUSTOMER_ID.ordinal()];
+        String productQuantitiesStr = values[OrderEnum.PRODUCT_QUANTITIES.ordinal()];
+        String orderDateStr = values[OrderEnum.ORDER_DATE.ordinal()];
+
+        if (validate) {
+            orderValidator.validateId(id, orderMap.containsKey(id), false);
+            orderValidator.validateCustomerId(customerId, customerIds.contains(customerId));
+            Map<String, Integer> productQuantities = parseProductQuantities(productQuantitiesStr);
+            orderValidator.validateProductQuantities(productQuantities, productMap.keySet());
+            orderValidator.validateProductStock(productQuantities, productMap);
+            orderValidator.validateOrderDate(orderDateStr);
+        }
+
+        Order order = new Order(id, customerId, parseProductQuantities(productQuantitiesStr), OffsetDateTime.parse(orderDateStr));
+        order.setTotalAmount(calculateTotalAmount(order, productMap, false));
+        return order;
     }
 
     public void addNewOrders() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_NEW_ORDER);
-        proceOrderData(data);
+        processOrderData(data, true);
         writeOrdersToFile();
     }
 
@@ -67,7 +114,7 @@ public class OrderService {
                     existingOrder.setProductQuantities(newProductQuantities);
                     existingOrder.setOrderDate(OffsetDateTime.parse(newOrderDateStr));
 
-                    double newTotalAmount = calculateTotalAmount(existingOrder, productMap);
+                    double newTotalAmount = calculateTotalAmount(existingOrder, productMap, true);
                     existingOrder.setTotalAmount(newTotalAmount);
 
                 } catch (IllegalArgumentException e) {
@@ -102,39 +149,6 @@ public class OrderService {
         }
 
         writeOrdersToFile();
-    }
-
-
-
-    private void proceOrderData(List<String[]> data) {
-        Set<String> customerIds = new HashSet<>(customerService.getCustomerIds());
-        Map<String, Product> productMap = new HashMap<>(productService.getAllProducts());
-        for (int i = 1; i < data.size(); i++) {
-            String[] values = data.get(i);
-            if (values.length >= OrderEnum.values().length - 1) {
-                String id = values[OrderEnum.ID.ordinal()];
-                String customerId = values[OrderEnum.CUSTOMER_ID.ordinal()];
-                String productQuantitiesStr = values[OrderEnum.PRODUCT_QUANTITIES.ordinal()];
-                String orderDateStr = values[OrderEnum.ORDER_DATE.ordinal()];
-
-                try {
-                    orderValidator.validateId(id, orderMap.containsKey(id), false);
-                    orderValidator.validateCustomerId(customerId, customerIds.contains(customerId));
-
-                    Map<String, Integer> productQuantities = parseProductQuantities(productQuantitiesStr);
-                    orderValidator.validateProductQuantities(productQuantities, productMap.keySet());
-                    orderValidator.validateProductStock(productQuantities, productMap);
-
-                    orderValidator.validateOrderDate(orderDateStr);
-
-                    Order order = new Order(id, customerId, productQuantities, OffsetDateTime.parse(orderDateStr));
-                    order.setTotalAmount(calculateTotalAmount(order, productMap));
-                    orderMap.put(id, order);
-                } catch (IllegalArgumentException e) {
-                    handleException(e);
-                }
-            }
-        }
     }
     public void writeOrdersToFile() {
         String header = createHeader();
@@ -184,7 +198,7 @@ public class OrderService {
         return productQuantities;
     }
 
-    public static Double calculateTotalAmount(Order order, Map<String, Product> productMap) {
+    public static Double calculateTotalAmount(Order order, Map<String, Product> productMap, boolean validate) {
         double totalAmount = 0.0;
 
         for (Map.Entry<String, Integer> entry : order.getProductQuantities().entrySet()) {
@@ -200,7 +214,9 @@ public class OrderService {
                     throw new IllegalArgumentException("Price not found for product ID: " + productId);
                 }
             } else {
-                throw new IllegalArgumentException("Product not found for ID: " + productId);
+                if (validate) {
+                    throw new IllegalArgumentException("Product not found for ID: " + productId);
+                }
             }
         }
         return totalAmount;

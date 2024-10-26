@@ -24,7 +24,7 @@ public class SystemManager {
                 productService.writeProductsToFile();
                 customerService.loadAndValidCustomers();
                 customerService.writeCustomersToFile();
-                orderService.loadOrders();
+                orderService.loadAndValidOrders();
                 orderService.writeOrdersToFile();
                 break;
             case "2.1":
@@ -76,8 +76,6 @@ public class SystemManager {
                 orderService.updateOrders();
                 break;
             case "4.3":
-                productService.loadProducts();
-                customerService.loadCustomers();
                 orderService.loadOrders();
                 orderService.deleteOrders();
                 break;
