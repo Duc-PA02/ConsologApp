@@ -19,7 +19,7 @@ public class ProductService {
         this.productMap = new HashMap<>();
     }
 
-    public Collection<Product> loadAndValidateProducts() {
+    public Collection<Product> loadAndValidProducts() {
         return loadProducts(true);
     }
 

@@ -20,9 +20,9 @@ public class SystemManager {
     public void processFunction(String functionCode) {
         switch (functionCode) {
             case "1":
-                productService.loadAndValidateProducts();
+                productService.loadAndValidProducts();
                 productService.writeProductsToFile();
-                customerService.loadCustomers();
+                customerService.loadAndValidCustomers();
                 customerService.writeCustomersToFile();
                 orderService.loadOrders();
                 orderService.writeOrdersToFile();

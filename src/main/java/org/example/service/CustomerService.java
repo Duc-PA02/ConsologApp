@@ -23,13 +23,12 @@ public class CustomerService {
         this.existingEmails = new HashSet<>();
     }
 
-    public List<Customer> loadCustomers() {
-        existingCustomerIds.clear();
-        existingEmails.clear();
-        customerMap.clear();
-        List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_CUSTOMER);
-        loadCustomerData(data);
-        return new ArrayList<>(customerMap.values());
+    public Collection<Customer> loadAndValidCustomers() {
+        return loadCustomers(true);
+    }
+
+    public Collection<Customer> loadCustomers() {
+        return loadCustomers(false);
     }
 
     public void addNewCustomers() {
@@ -54,6 +53,7 @@ public class CustomerService {
     public void deleteCustomers() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_DELETE_CUSTOMER);
         Set<String> phoneNumbers = processDeleteCustomerData(data);
+
         Set<String> customerIdsToRemove = new HashSet<>();
         Set<String> emailsToRemove = new HashSet<>();
 
@@ -72,31 +72,44 @@ public class CustomerService {
         writeCustomersToFile();
     }
 
-    private void loadCustomerData(List<String[]> data) {
+    private Collection<Customer> loadCustomers(boolean validate) {
+        customerMap.clear();
+        existingCustomerIds.clear();
+        existingEmails.clear();
+        List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_CUSTOMER);
+
         for (int i = 1; i < data.size(); i++) {
             String[] values = data.get(i);
-            if (values.length >= CustomerEnum.values().length) {
-                String id = values[CustomerEnum.ID.ordinal()];
-                String name = values[CustomerEnum.NAME.ordinal()];
-                String email = values[CustomerEnum.EMAIL.ordinal()];
-                String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()];
-
-                try {
-                    customerValidator.validateId(id, existingCustomerIds.contains(id));
-                    customerValidator.validateName(name);
-                    customerValidator.validateEmail(email, existingEmails.contains(email));
-                    customerValidator.validatePhoneNumber(phoneNumber, customerMap.containsKey(phoneNumber));
-
-                    existingCustomerIds.add(id);
-                    existingEmails.add(email);
-
-                    Customer customer = new Customer(id, name, email, phoneNumber);
-                    customerMap.put(phoneNumber, customer);
-                } catch (IllegalArgumentException e) {
-                    handleException(e);
-                }
+            try {
+                Customer customer = createCustomerFromValues(values, validate);
+                customerMap.put(customer.getPhoneNumber(), customer);
+                existingCustomerIds.add(customer.getId());
+                existingEmails.add(customer.getEmail());
+            } catch (IllegalArgumentException e) {
+                handleException(e);
             }
         }
+        return customerMap.values();
+    }
+
+    private Customer createCustomerFromValues(String[] values, boolean validate) {
+        if (values.length < CustomerEnum.values().length) {
+            throw new IllegalArgumentException("Invalid data length");
+        }
+
+        String id = values[CustomerEnum.ID.ordinal()];
+        String name = values[CustomerEnum.NAME.ordinal()];
+        String email = values[CustomerEnum.EMAIL.ordinal()];
+        String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()];
+
+        if (validate) {
+            customerValidator.validateId(id, existingCustomerIds.contains(id));
+            customerValidator.validateName(name);
+            customerValidator.validateEmail(email, existingEmails.contains(email));
+            customerValidator.validatePhoneNumber(phoneNumber, customerMap.containsKey(phoneNumber));
+        }
+
+        return new Customer(id, name, email, phoneNumber);
     }
 
     private void processCustomerUpdateData(List<String[]> data, List<Customer> resultCustomers, boolean isAddOperation) {
@@ -109,28 +122,19 @@ public class CustomerService {
                 String email = values[CustomerEnum.EMAIL.ordinal()];
                 String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()];
 
-                try {
-                    customerValidator.validateId(id, existingCustomerIds.contains(id));
-                    customerValidator.validateName(name);
-                    customerValidator.validateEmail(email, existingEmails.contains(email));
-                    customerValidator.validatePhoneNumber(phoneNumber, false);
+                Customer existingCustomer = customerMap.get(phoneNumber);
 
-                    Customer existingCustomer = customerMap.get(phoneNumber);
-
-                    if (existingCustomer != null) {
-                        existingCustomer.setName(name);
-                        existingCustomer.setEmail(email);
-                    } else if (isAddOperation) {
-                        Customer newCustomer = new Customer(id, name, email, phoneNumber);
-                        customerMap.put(phoneNumber, newCustomer);
-                        existingCustomerIds.add(id);
-                        existingEmails.add(email);
-                    } else {
-                        Customer nonExistingCustomer = new Customer(id, name, email, phoneNumber);
-                        resultCustomers.add(nonExistingCustomer);
-                    }
-                } catch (IllegalArgumentException e) {
-                    handleException(e);
+                if (existingCustomer != null) {
+                    existingCustomer.setName(name);
+                    existingCustomer.setEmail(email);
+                } else if (isAddOperation) {
+                    Customer newCustomer = new Customer(id, name, email, phoneNumber);
+                    customerMap.put(phoneNumber, newCustomer);
+                    existingCustomerIds.add(id);
+                    existingEmails.add(email);
+                } else {
+                    Customer nonExistingCustomer = new Customer(id, name, email, phoneNumber);
+                    resultCustomers.add(nonExistingCustomer);
                 }
             }
         }
@@ -144,18 +148,11 @@ public class CustomerService {
 
             if (values.length > 0) {
                 String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()];
-                try {
-                    customerValidator.validatePhoneNumber(phoneNumber, customerMap.containsKey(phoneNumber));
-                    if (!phoneNumber.isEmpty()) {
-                        phoneNumbers.add(phoneNumber);
-                    }
-                } catch (IllegalArgumentException e){
-                    handleException(e);
+                if (!phoneNumber.isEmpty()) {
+                    phoneNumbers.add(phoneNumber);
                 }
-
             }
         }
-
         return phoneNumbers;
     }
 
@@ -191,5 +188,11 @@ public class CustomerService {
                 customer.getName(),
                 customer.getEmail(),
                 customer.getPhoneNumber());
+    }
+
+    private void resetData(){
+        existingCustomerIds.clear();
+        existingEmails.clear();
+        customerMap.clear();
     }
 }
