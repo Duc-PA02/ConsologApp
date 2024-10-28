@@ -278,3 +278,6 @@ Error on line 9: Order ID does not exist for update: ORD0006000
 Error on line 9: Order ID does not exist for update: ORD0006000
 Error on line 1: Order ID already exists: ORD0004194
 Error on line 9: Order ID does not exist for update: ORD0006000
+Customer with phone number 0320157549 does not exist in the system.
+Customer with phone number 0467843455 does not exist in the system.
+Customer with phone number 0467846655 does not exist in the system.

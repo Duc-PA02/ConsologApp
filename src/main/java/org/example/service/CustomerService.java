@@ -150,7 +150,15 @@ public class CustomerService {
 
                     Customer existingCustomer = customerMap.get(phoneNumber);
                     if (existingCustomer != null) {
+                        if (!existingCustomer.getId().equals(id) && existingCustomerIds.contains(id)) {
+                            throw new IllegalArgumentException("ID " + id + " already exists.");
+                        }
+                        if (!existingCustomer.getEmail().equals(email) && existingEmails.contains(email)) {
+                            throw new IllegalArgumentException("Email " + email + " already exists.");
+                        }
+                        existingCustomer.setId(id);
                         existingCustomer.setName(name);
+                        existingCustomer.setEmail(email);
                     } else {
                         Customer nonExistingCustomer = new Customer(id, name, email, phoneNumber);
                         nonExistingCustomers.add(nonExistingCustomer);
@@ -161,7 +169,6 @@ public class CustomerService {
             }
         }
     }
-
 
     private Set<String> processDeleteCustomerData(List<String[]> data) {
         Set<String> phoneNumbers = new HashSet<>();
