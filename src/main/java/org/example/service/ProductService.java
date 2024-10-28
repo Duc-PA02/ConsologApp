@@ -1,6 +1,5 @@
 package org.example.service;
 
-import org.example.enums.CustomerEnum;
 import org.example.enums.ProductEnum;
 import org.example.model.Product;
 import org.example.common.FileProcessor;
@@ -8,6 +7,7 @@ import org.example.util.MessageKeys;
 import org.example.validate.ProductValidator;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ProductService {
     private final FileProcessor<Product> fileProcessor;
@@ -17,18 +17,18 @@ public class ProductService {
     public ProductService(String folderPath) {
         this.fileProcessor = new FileProcessor<>(folderPath);
         this.productValidator = new ProductValidator();
-        this.productMap = new HashMap<>();
+        this.productMap = new ConcurrentHashMap<>();
     }
 
-    public Collection<Product> loadAndValidProducts() {
+    public synchronized Collection<Product> loadAndValidProducts() {
         return loadProducts(true);
     }
 
-    public Collection<Product> loadProducts() {
+    public synchronized Collection<Product> loadProducts() {
         return loadProducts(false);
     }
 
-    private Collection<Product> loadProducts(boolean validate) {
+    private synchronized Collection<Product> loadProducts(boolean validate) {
         productMap.clear();
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_PRODUCT);
         for (int i = 1; i < data.size(); i++) {
@@ -37,10 +37,10 @@ public class ProductService {
                 Product product = createProductFromValues(values, validate);
                 productMap.put(product.getId(), product);
             } catch (IllegalArgumentException e) {
-                handleException(e);
+                handleException(e, i);
             }
         }
-        return productMap.values();
+        return new ArrayList<>(productMap.values());
     }
 
     private Product createProductFromValues(String[] values, boolean validate) {
@@ -54,7 +54,7 @@ public class ProductService {
         String stockStr = values[ProductEnum.STOCK_AVAILABLE.ordinal()];
 
         if (validate) {
-            productValidator.validateId(id, productMap.containsKey(id));
+            productValidator.validateId(id, productMap.containsKey(id), false);
             productValidator.validateName(name);
             productValidator.validatePrice(priceStr);
             productValidator.validateStock(stockStr);
@@ -63,19 +63,19 @@ public class ProductService {
         return new Product(id, name, Double.parseDouble(priceStr), Integer.parseInt(stockStr));
     }
 
-    public void addNewProducts() {
+    public synchronized void addNewProducts() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_NEW_PRODUCT);
         processProductData(data);
         writeProductsToFile();
     }
 
-    public void updateProducts() {
+    public synchronized void updateProducts() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_EDIT_PRODUCT);
         processProductUpdateData(data);
         writeProductsToFile();
     }
 
-    public void deleteProducts() {
+    public synchronized void deleteProducts() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_DELETE_PRODUCT);
         Set<String> productIdsToDelete = processDeleteProductData(data);
 
@@ -88,24 +88,47 @@ public class ProductService {
     private void processProductData(List<String[]> data) {
         for (int i = 1; i < data.size(); i++) {
             String[] values = data.get(i);
-            Product product = new Product(values[ProductEnum.ID.ordinal()],
-                    values[ProductEnum.NAME.ordinal()],
-                    Double.parseDouble(values[ProductEnum.PRICE.ordinal()]),
-                    Integer.parseInt(values[ProductEnum.STOCK_AVAILABLE.ordinal()]));
-            productMap.put(product.getId(), product);
+            if (values.length >= ProductEnum.values().length) {
+                String id = values[ProductEnum.ID.ordinal()];
+                String name = values[ProductEnum.NAME.ordinal()];
+                String priceStr = values[ProductEnum.PRICE.ordinal()];
+                String stockStr = values[ProductEnum.STOCK_AVAILABLE.ordinal()];
+                try {
+                    productValidator.validateId(id, productMap.containsKey(id), false);
+                    productValidator.validateName(name);
+                    productValidator.validatePrice(priceStr);
+                    productValidator.validateStock(stockStr);
+                    Product product = new Product(id, name, Double.parseDouble(priceStr), Integer.parseInt(stockStr));
+                    productMap.put(id, product);
+                } catch (IllegalArgumentException e) {
+                    handleException(e, i + 1);
+                }
+            }
         }
     }
 
     private void processProductUpdateData(List<String[]> data) {
         for (int i = 1; i < data.size(); i++) {
             String[] values = data.get(i);
-            String id = values[ProductEnum.ID.ordinal()];
+            if (values.length >= ProductEnum.values().length) {
+                try {
+                    String id = values[ProductEnum.ID.ordinal()];
+                    String name = values[ProductEnum.NAME.ordinal()];
+                    String priceStr = values[ProductEnum.PRICE.ordinal()];
+                    String stockStr = values[ProductEnum.STOCK_AVAILABLE.ordinal()];
 
-            if (productMap.containsKey(id)) {
-                Product existingProduct = productMap.get(id);
-                existingProduct.setName(values[ProductEnum.NAME.ordinal()]);
-                existingProduct.setPrice(Double.parseDouble(values[ProductEnum.PRICE.ordinal()]));
-                existingProduct.setStockAvailable(Integer.parseInt(values[ProductEnum.STOCK_AVAILABLE.ordinal()]));
+                    productValidator.validateId(id, productMap.containsKey(id), true);
+                    productValidator.validateName(name);
+                    productValidator.validatePrice(priceStr);
+                    productValidator.validateStock(stockStr);
+
+                    Product existingProduct = productMap.get(id);
+                    existingProduct.setName(name);
+                    existingProduct.setPrice(Double.parseDouble(priceStr));
+                    existingProduct.setStockAvailable(Integer.parseInt(stockStr));
+                } catch (IllegalArgumentException e) {
+                    handleException(e, i + 1);
+                }
             }
         }
     }
@@ -116,8 +139,15 @@ public class ProductService {
             String[] values = data.get(i);
             if (values.length > 0) {
                 String productId = values[ProductEnum.ID.ordinal()];
-                if (!productId.isEmpty()) {
-                    productIdsToDelete.add(productId);
+                try {
+                    productValidator.validateId(productId, productMap.containsKey(productId), true);
+
+                    if (!productId.isEmpty()) {
+                        productIdsToDelete.add(productId);
+                    }
+
+                } catch (IllegalArgumentException e) {
+                    handleException(e, i + 1);
                 }
             }
         }
@@ -149,7 +179,8 @@ public class ProductService {
         return productMap;
     }
 
-    private void handleException(IllegalArgumentException e) {
-        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, "An error occurred: " + e.getMessage());
+    private void handleException(IllegalArgumentException e, int lineNumber) {
+        String errorMessage = "Error on line " + lineNumber + ": " + e.getMessage();
+        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, errorMessage);
     }
 }

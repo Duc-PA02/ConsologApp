@@ -7,50 +7,49 @@ import org.example.model.Customer;
 import org.example.util.MessageKeys;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CustomerService {
     private final FileProcessor<Customer> fileProcessor;
     private final CustomerValidator customerValidator;
-    private final Set<String> existingCustomerIds;
-    private final Set<String> existingEmails;
+    private final Set<String> existingCustomerIds = ConcurrentHashMap.newKeySet();
+    private final Set<String> existingEmails = ConcurrentHashMap.newKeySet();
     private Map<String, Customer> customerMap;
 
     public CustomerService(String folderPath) {
         this.fileProcessor = new FileProcessor<>(folderPath);
         this.customerValidator = new CustomerValidator();
-        this.existingCustomerIds = new HashSet<>();
-        this.customerMap = new HashMap<>();
-        this.existingEmails = new HashSet<>();
+        this.customerMap = new ConcurrentHashMap<>();
     }
 
-    public Collection<Customer> loadAndValidCustomers() {
+    public synchronized Collection<Customer> loadAndValidCustomers() {
         return loadCustomers(true);
     }
 
-    public Collection<Customer> loadCustomers() {
+    public synchronized Collection<Customer> loadCustomers() {
         return loadCustomers(false);
     }
 
-    public void addNewCustomers() {
+    public synchronized void addNewCustomers() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_NEW_CUSTOMER);
-        List<Customer> newCustomers = new ArrayList<>();
-        processCustomerUpdateData(data, newCustomers, true);
+        processCustomerData(data);
         writeCustomersToFile();
     }
 
-    public void updateCustomers() {
+    public synchronized void updateCustomers() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_EDIT_CUSTOMER);
         List<Customer> nonExistingCustomers = new ArrayList<>();
-        processCustomerUpdateData(data, nonExistingCustomers, false);
+
+        processCustomerUpdateData(data, nonExistingCustomers);
 
         if (!nonExistingCustomers.isEmpty()) {
-            writeNonExistingCustomersToFile(nonExistingCustomers);
+            handleNonExistingCustomers(nonExistingCustomers);
         }
 
         writeCustomersToFile();
     }
 
-    public void deleteCustomers() {
+    public synchronized void deleteCustomers() {
         List<String[]> data = fileProcessor.readFile(MessageKeys.FILE_PATH_DELETE_CUSTOMER);
         Set<String> phoneNumbers = processDeleteCustomerData(data);
 
@@ -63,6 +62,9 @@ public class CustomerService {
                 customerIdsToRemove.add(customer.getId());
                 emailsToRemove.add(customer.getEmail());
                 customerMap.remove(phoneNumber);
+            }else {
+                String errorMessage = "Customer with phone number " + phoneNumber + " does not exist in the system.";
+                fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, errorMessage);
             }
         });
 
@@ -84,7 +86,7 @@ public class CustomerService {
                 existingCustomerIds.add(customer.getId());
                 existingEmails.add(customer.getEmail());
             } catch (IllegalArgumentException e) {
-                handleException(e);
+                handleException(e, i+ 1);
             }
         }
         return customerMap.values();
@@ -110,33 +112,56 @@ public class CustomerService {
         return new Customer(id, name, email, phoneNumber);
     }
 
-    private void processCustomerUpdateData(List<String[]> data, List<Customer> resultCustomers, boolean isAddOperation) {
+    private void processCustomerData(List<String[]> data) {
         for (int i = 1; i < data.size(); i++) {
             String[] values = data.get(i);
-
             if (values.length >= CustomerEnum.values().length) {
                 String id = values[CustomerEnum.ID.ordinal()];
                 String name = values[CustomerEnum.NAME.ordinal()];
                 String email = values[CustomerEnum.EMAIL.ordinal()];
                 String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()];
+                try {
+                    customerValidator.validateId(id, existingCustomerIds.contains(id));
+                    customerValidator.validateName(name);
+                    customerValidator.validateEmail(email, existingEmails.contains(email));
+                    customerValidator.validatePhoneNumber(phoneNumber, customerMap.containsKey(phoneNumber));
 
-                Customer existingCustomer = customerMap.get(phoneNumber);
-
-                if (existingCustomer != null) {
-                    existingCustomer.setName(name);
-                    existingCustomer.setEmail(email);
-                } else if (isAddOperation) {
-                    Customer newCustomer = new Customer(id, name, email, phoneNumber);
-                    customerMap.put(phoneNumber, newCustomer);
                     existingCustomerIds.add(id);
-                    existingEmails.add(email);
-                } else {
-                    Customer nonExistingCustomer = new Customer(id, name, email, phoneNumber);
-                    resultCustomers.add(nonExistingCustomer);
+
+                    Customer customer = new Customer(id, name, email, phoneNumber);
+                    customerMap.put(phoneNumber, customer);
+                } catch (IllegalArgumentException e) {
+                    handleException(e, i + 1);
                 }
             }
         }
     }
+    private void processCustomerUpdateData(List<String[]> data, List<Customer> nonExistingCustomers) {
+        for (int i = 1; i < data.size(); i++) {
+            String[] values = data.get(i);
+            if (values.length >= CustomerEnum.values().length) {
+                String id = values[CustomerEnum.ID.ordinal()];
+                String name = values[CustomerEnum.NAME.ordinal()];
+                String email = values[CustomerEnum.EMAIL.ordinal()];
+                String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()];
+                try {
+                    customerValidator.validateName(name);
+                    customerValidator.validatePhoneNumber(phoneNumber, false);
+
+                    Customer existingCustomer = customerMap.get(phoneNumber);
+                    if (existingCustomer != null) {
+                        existingCustomer.setName(name);
+                    } else {
+                        Customer nonExistingCustomer = new Customer(id, name, email, phoneNumber);
+                        nonExistingCustomers.add(nonExistingCustomer);
+                    }
+                } catch (IllegalArgumentException e) {
+                    handleException(e, i + 1);
+                }
+            }
+        }
+    }
+
 
     private Set<String> processDeleteCustomerData(List<String[]> data) {
         Set<String> phoneNumbers = new HashSet<>();
@@ -148,14 +173,25 @@ public class CustomerService {
                 String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()];
                 if (!phoneNumber.isEmpty()) {
                     phoneNumbers.add(phoneNumber);
+                }else {
+                    String errorMessage = "Invalid or missing phone number at line " + (i + 1);
+                    fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, errorMessage);
                 }
             }
         }
         return phoneNumbers;
     }
 
-    private void handleException(IllegalArgumentException e) {
-        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, "An error occurred: " + e.getMessage());
+    private void handleException(IllegalArgumentException e, int lineNumber) {
+        String errorMessage = "Error on line " + lineNumber + ": " + e.getMessage();
+        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, errorMessage);
+    }
+
+    private void handleNonExistingCustomers(List<Customer> nonExistingCustomers) {
+        for (Customer customer : nonExistingCustomers) {
+            String errorMessage = "Customer with phone number " + customer.getPhoneNumber() + " does not exist in the system.";
+            fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, errorMessage);
+        }
     }
 
     public Set<String> getCustomerIds() {
@@ -165,11 +201,6 @@ public class CustomerService {
     public void writeCustomersToFile() {
         String header = createHeader();
         fileProcessor.writeFile(MessageKeys.FILE_OUTPUT_CUSTOMER, new ArrayList<>(customerMap.values()), this::formatCustomer, header);
-    }
-
-    private void writeNonExistingCustomersToFile(List<Customer> nonExistingCustomers) {
-        String header = createHeader();
-        fileProcessor.writeFile(MessageKeys.FILE_ERROR, nonExistingCustomers, this::formatCustomer, header);
     }
 
     private String createHeader() {

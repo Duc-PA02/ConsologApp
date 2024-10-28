@@ -50,7 +50,7 @@ public class OrderService {
                 Order order = createOrderFromValues(values, validate, customerIds, productMap);
                 orderMap.put(order.getId(), order);
             } catch (IllegalArgumentException e) {
-                handleException(e);
+                handleException(e, i);
             }
         }
     }
@@ -118,7 +118,7 @@ public class OrderService {
                     existingOrder.setTotalAmount(newTotalAmount);
 
                 } catch (IllegalArgumentException e) {
-                    handleException(e);
+                    handleException(e, i);
                 }
             }
         }
@@ -139,7 +139,7 @@ public class OrderService {
                     orderValidator.validateId(id, orderMap.containsKey(id), true);
                     orderIdsToDelete.add(id);
                 } catch (IllegalArgumentException e) {
-                    handleException(e);
+                    handleException(e, i);
                 }
             }
         }
@@ -222,8 +222,9 @@ public class OrderService {
         return totalAmount;
     }
 
-    private void handleException(IllegalArgumentException e) {
-        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, "An error occurred: " + e.getMessage());
+    private void handleException(IllegalArgumentException e, int lineNumber) {
+        String errorMessage = "Error on line " + lineNumber + ": " + e.getMessage();
+        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, errorMessage);
     }
 
     protected Map<String, Order> orders(){

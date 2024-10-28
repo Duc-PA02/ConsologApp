@@ -4,7 +4,6 @@ import org.example.util.MessageKeys;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +42,7 @@ public class FileProcessor<T> {
     public void writeFile(String fileName, List<T> objects, CSVFormatter<T> formatter, String header) {
         String filePath = Paths.get(folderPath, fileName).toString();
         File file = new File(filePath);
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), StandardCharsets.UTF_8))) {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
             if (file.length() == 0) {
                 writer.write(header);
                 writer.newLine();
