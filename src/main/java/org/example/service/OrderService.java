@@ -155,7 +155,7 @@ public class OrderService {
         fileProcessor.writeFile(MessageKeys.FILE_OUTPUT_ORDER, new ArrayList<>(orderMap.values()), this::formatOrder, header);
     }
 
-    protected String createHeader() {
+    public String createHeader() {
         return String.join(MessageKeys.CHARACTER,
                 OrderEnum.ID.getHeader(),
                 OrderEnum.CUSTOMER_ID.getHeader(),
@@ -164,7 +164,7 @@ public class OrderService {
                 OrderEnum.TOTAL_AMOUNT.getHeader());
     }
 
-    protected String formatOrder(Order order) {
+    public String formatOrder(Order order) {
         StringBuilder productQuantitiesStr = new StringBuilder();
         order.getProductQuantities().forEach((productId, quantity) ->
                 productQuantitiesStr.append(productId).append(MessageKeys.CHAR_SPLIT).append(quantity).append(MessageKeys.CHAR_SPLIT_QUANTITY)
@@ -227,7 +227,7 @@ public class OrderService {
         fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, errorMessage);
     }
 
-    protected Map<String, Order> orders(){
+    public Map<String, Order> orders(){
         return orderMap;
     }
 }

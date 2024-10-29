@@ -281,3 +281,16 @@ Error on line 9: Order ID does not exist for update: ORD0006000
 Customer with phone number 0320157549 does not exist in the system.
 Customer with phone number 0467843455 does not exist in the system.
 Customer with phone number 0467846655 does not exist in the system.
+Customer with phone number 0328060524 does not exist in the system.
+Customer with phone number CUS4999 does not exist in the system.
+Customer with phone number CUS4998 does not exist in the system.
+Customer with phone number CUS4997 does not exist in the system.
+Customer with phone number CUS4996 does not exist in the system.
+Customer with phone number CUS4995 does not exist in the system.
+Customer with phone number CUS4994 does not exist in the system.
+Customer with phone number CUS4993 does not exist in the system.
+Customer with phone number CUS4992 does not exist in the system.
+Customer with phone number CUS9999 does not exist in the system.
+Customer with phone number CUS4991 does not exist in the system.
+Customer with phone number 0328060524 does not exist in the system.
+Customer with phone number 0328060524 does not exist in the system.

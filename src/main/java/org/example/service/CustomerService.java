@@ -177,12 +177,22 @@ public class CustomerService {
             String[] values = data.get(i);
 
             if (values.length > 0) {
-                String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()];
-                if (!phoneNumber.isEmpty()) {
-                    phoneNumbers.add(phoneNumber);
-                }else {
-                    String errorMessage = "Invalid or missing phone number at line " + (i + 1);
-                    fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, errorMessage);
+                if (values.length == 1) {
+                    String phoneNumber = values[0];
+                    if (!phoneNumber.isEmpty()) {
+                        phoneNumbers.add(phoneNumber);
+                    } else {
+                        String errorMessage = "Invalid or missing phone number at line " + (i + 1);
+                        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, errorMessage);
+                    }
+                } else {
+                    String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()];
+                    if (!phoneNumber.isEmpty()) {
+                        phoneNumbers.add(phoneNumber);
+                    } else {
+                        String errorMessage = "Invalid or missing phone number at line " + (i + 1);
+                        fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, errorMessage);
+                    }
                 }
             }
         }

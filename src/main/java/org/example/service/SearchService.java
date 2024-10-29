@@ -24,14 +24,17 @@ public class SearchService {
         this.idFileProcessor = new FileProcessor<>(folderPath);
     }
 
-    // Tìm kiếm top 3 product có số lượng order lớn nhất
     public void searchToProduct() {
         Map<String, Integer> productOrderCount = new HashMap<>();
 
         for (Order order : orderService.orders().values()) {
-            Set<String> productIdsInOrder = order.getProductQuantities().keySet();
-            for (String productId : productIdsInOrder) {
-                productOrderCount.put(productId, productOrderCount.getOrDefault(productId, 0) + 1);
+            Map<String, Integer> productQuantities = order.getProductQuantities();
+
+            if (productQuantities != null) {
+                Set<String> productIdsInOrder = productQuantities.keySet();
+                for (String productId : productIdsInOrder) {
+                    productOrderCount.put(productId, productOrderCount.getOrDefault(productId, 0) + 1);
+                }
             }
         }
 
@@ -49,19 +52,16 @@ public class SearchService {
         fileProcessorProduct.writeFile(MessageKeys.FILE_OUTPUT_PRODUCT, top3Products, productService::formatProduct, header);
     }
 
+
     public void searchOrdersByProductId() {
         List<String[]> productIdData = idFileProcessor.readFile(MessageKeys.FILE_PATH_SEARCH_PRODUCT_ID);
-
-        List<String> productIds = productIdData.stream()
-                .map(values -> values[ProductEnum.ID.ordinal()]).toList();
-
-        findOrdersByProductIds(productIds);
+        findOrdersByProductIds(productIdData);
     }
 
-    private void findOrdersByProductIds(List<String> productIds) {
+    private void findOrdersByProductIds(List<String[]> productIdData) {
         try {
             List<Order> matchingOrders = orderService.orders().values().stream()
-                    .filter(order -> orderContainsProductId(order, productIds))
+                    .filter(order -> orderContainsProductId(order, productIdData))
                     .collect(Collectors.toList());
 
             if (matchingOrders.isEmpty()) {
@@ -75,8 +75,10 @@ public class SearchService {
         }
     }
 
-    private boolean orderContainsProductId(Order order, List<String> productIds) {
-        return order.getProductQuantities().keySet().stream()
-                .anyMatch(productIds::contains);
+    private boolean orderContainsProductId(Order order, List<String[]> productIdData) {
+        Set<String> orderProductIds = order.getProductQuantities().keySet();
+        return productIdData.stream()
+                .map(values -> values[ProductEnum.ID.ordinal()])
+                .anyMatch(orderProductIds::contains);
     }
 }
