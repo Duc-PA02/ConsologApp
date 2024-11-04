@@ -102,18 +102,24 @@ public class OrderService {
 
                 try {
                     orderValidator.validateId(id, orderMap.containsKey(id), true);
-                    orderValidator.validateCustomerId(newCustomerId, customerIds.contains(newCustomerId));
-                    Map<String, Integer> newProductQuantities = parseProductQuantities(newProductQuantitiesStr);
-                    orderValidator.validateProductQuantities(newProductQuantities, productMap.keySet());
-                    orderValidator.validateProductStock(newProductQuantities, productMap);
-                    orderValidator.validateOrderDate(newOrderDateStr);
-
                     Order existingOrder = orderMap.get(id);
 
-                    existingOrder.setCustomerId(newCustomerId);
-                    existingOrder.setProductQuantities(newProductQuantities);
-                    existingOrder.setOrderDate(OffsetDateTime.parse(newOrderDateStr));
+                    if (!newCustomerId.isEmpty() && !customerIds.contains(newCustomerId)) {
+                        orderValidator.validateCustomerId(newCustomerId, customerIds.contains(newCustomerId));
+                        existingOrder.setCustomerId(newCustomerId);
+                    }
 
+                    Map<String, Integer> newProductQuantities = parseProductQuantities(newProductQuantitiesStr);
+
+                    orderValidator.validateProductQuantities(newProductQuantities, productMap.keySet());
+                    orderValidator.validateProductStock(newProductQuantities, productMap);
+
+                    if (!newOrderDateStr.isEmpty()){
+                        orderValidator.validateOrderDate(newOrderDateStr);
+                        existingOrder.setOrderDate(OffsetDateTime.parse(newOrderDateStr));
+                    }
+
+                    existingOrder.setProductQuantities(newProductQuantities);
                     double newTotalAmount = calculateTotalAmount(existingOrder, productMap, true);
                     existingOrder.setTotalAmount(newTotalAmount);
 
@@ -225,6 +231,16 @@ public class OrderService {
     private void handleException(IllegalArgumentException e, int lineNumber) {
         String errorMessage = "Error on line " + lineNumber + ": " + e.getMessage();
         fileProcessor.writeErrorLog(MessageKeys.FILE_ERROR, errorMessage);
+    }
+
+    private String generateUniqueOrderId(Set<String> existingIds) {
+        Random random = new Random();
+        String id;
+        do {
+            int randomNumber = random.nextInt(1_000_000_0);
+            id = "ORD" + String.format("%07d", randomNumber);
+        } while (existingIds.contains(id));
+        return id;
     }
 
     public Map<String, Order> orders(){

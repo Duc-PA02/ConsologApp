@@ -294,3 +294,4 @@ Customer with phone number CUS9999 does not exist in the system.
 Customer with phone number CUS4991 does not exist in the system.
 Customer with phone number 0328060524 does not exist in the system.
 Customer with phone number 0328060524 does not exist in the system.
+Error on line 1: Ordered quantity exceeds available stock for product ID: P0290
