@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example</groupId>
+    <groupId>org.mock</groupId>
     <artifactId>ConsologApp</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -57,7 +57,7 @@
                         <manifest>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                            <mainClass>org.example.Main</mainClass>
+                            <mainClass>org.mock.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
