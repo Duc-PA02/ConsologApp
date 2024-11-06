@@ -41,15 +41,15 @@ public class CustomerService {
                 String phoneNumber = values[CustomerEnum.PHONE_NUMBER.ordinal()];
                 try {
                     customerValidator.validateId(id, existingCustomerIds.contains(id));
-                    customerValidator.validateName(name);
                     customerValidator.validateEmail(email, existingEmails.contains(email));
-                    customerValidator.validatePhoneNumber(phoneNumber, customerMap.containsKey(phoneNumber));
+                    customerValidator.validateName(name);
                     if (customerMap.containsKey(phoneNumber)) {
                         Customer existingCustomer = customerMap.get(phoneNumber);
                         existingCustomer.setId(id);
                         existingCustomer.setName(name);
                         existingCustomer.setEmail(email);
                     } else {
+                        customerValidator.validatePhoneNumber(phoneNumber, customerMap.containsKey(phoneNumber));
                         existingCustomerIds.add(id);
                         existingEmails.add(email);
                         Customer customer = new Customer(id, name, email, phoneNumber);
